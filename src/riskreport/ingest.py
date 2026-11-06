@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pandera.pandas as pa
 
-SOURCES = ["positions_fo", "positions_bo", "statics", "prices", "fx", "limits", "factor_history"]
+SOURCES = ["positions_fo", "positions_bo", "statics", "prices", "fx", "limits", "pnl_fo", "factor_history"]
 TYPES = ["EQUITY", "FUTURE", "OPTION", "BOND", "FXCASH"]
 DESKS = ["EQUITY", "RATES", "FX"]
 
@@ -25,6 +25,8 @@ SCHEMAS = {
                                    "coupon": pa.Column(float, pa.Check.ge(0), nullable=True, required=False, coerce=True),
                                    "maturity_years": pa.Column(float, pa.Check.gt(0), nullable=True, required=False, coerce=True),
                                    "country": pa.Column(str, nullable=True, required=False)}, strict=True),
+    "pnl_fo": pa.DataFrameSchema({"desk": pa.Column(str, pa.Check.isin(DESKS)), "book": pa.Column(str), "instrument": pa.Column(str),
+                                  "pnl": pa.Column(float, nullable=False, coerce=True)}, strict=True),
     "prices": pa.DataFrameSchema({"date": pa.Column(str), "instrument": pa.Column(str),
                                   "price": pa.Column(float, pa.Check.gt(0), coerce=True)}, strict=True),
     "fx": pa.DataFrameSchema({"date": pa.Column(str), "pair": pa.Column(str), "rate": pa.Column(float, pa.Check.gt(0), coerce=True)}, strict=True),

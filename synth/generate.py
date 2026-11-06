@@ -9,10 +9,11 @@ import pandas as pd
 import tomllib
 
 from riskreport import calendar as cal
-from riskreport import config
+from riskreport import config, pnl
+from riskreport import valuation as V
 from synth import market as M
 
-DEFECTS = ["missing_price", "stale_price", "duplicate", "qty_break", "jump_9sigma", "missing_fx", "var_limit_breach", "dv01_breach"]
+DEFECTS = ["missing_price", "stale_price", "duplicate", "qty_break", "jump_9sigma", "missing_fx", "var_limit_breach", "dv01_breach", "pnl_gap"]
 
 
 def build_book(seed=42, asof=date(2026, 10, 30)):
@@ -46,6 +47,18 @@ def build_book(seed=42, asof=date(2026, 10, 30)):
     return pd.DataFrame(st), pd.DataFrame(pos)
 
 
+def fo_pnl(st, pos, lev, asof, seed):
+    """FO P&L = true hypothetical P&L + intraday new-trade effect on a few lines + fees + 1% noise (all independent of the explain model)."""
+    book = pos.merge(st.drop(columns=["desk"]), on="instrument", how="left")
+    lv = lev.iloc[-1].to_dict()
+    mk = V.Mkt(asof, cal.previous(asof), lev.iloc[-2].to_dict(), lv, {p: lev.iloc[-2][p] for p in M.FX}, {p: lv[p] for p in M.FX}, [])
+    h = pnl.hypothetical(book, mk, config.load()[0])
+    rng = np.random.default_rng(seed + 7)
+    fo = h.pnl_hypo * (1 + 0.01 * rng.standard_normal(len(h))) - 0.00002 * np.abs(book.quantity * book.multiplier) * (book.type != "FXCASH")  # fees
+    fo = fo + np.where(book.instrument.isin(["EQ1", "EQ2"]), 1500.0, 0.0)  # new trades done after the position snapshot
+    return pd.DataFrame({"desk": pos.desk, "book": pos.book, "instrument": pos.instrument, "pnl": fo.round(2)})
+
+
 def write_day(out, asof=date(2026, 10, 30), seed=42, n_days=750, defects=()):
     out = Path(out) / asof.isoformat()
     out.mkdir(parents=True, exist_ok=True)
@@ -57,6 +70,7 @@ def write_day(out, asof=date(2026, 10, 30), seed=42, n_days=750, defects=()):
     prices = pd.DataFrame([{"date": d.date().isoformat(), "instrument": r.instrument, "price": float(lev.loc[d, r.factor])} for d in last6 for r in prc_inst.itertuples()])
     fx = pd.DataFrame([{"date": d.date().isoformat(), "pair": p, "rate": float(lev.loc[d, p])} for d in last6 for p in M.FX])
     limits = pd.DataFrame(columns=["desk", "metric", "limit"])  # filled by the limits step once the metrics exist
+    pnl_fo = fo_pnl(st, pos, lev, asof, seed)
     hist = lev.copy()
     hist.index = [d.date().isoformat() for d in hist.index]
     used = set(defects)
@@ -77,7 +91,9 @@ def write_day(out, asof=date(2026, 10, 30), seed=42, n_days=750, defects=()):
         hist.iloc[-1, hist.columns.get_loc("EQ7")] = new
     if "missing_fx" in used:
         fx = fx[~((fx.pair == "EURGBP") & (fx.date == asof.isoformat()))]
-    files = {"positions_fo": fo, "positions_bo": bo, "statics": st, "prices": prices, "fx": fx, "limits": limits}
+    if "pnl_gap" in used:
+        pnl_fo.loc[pnl_fo.instrument == "EQ8", "pnl"] += 90_000.0
+    files = {"positions_fo": fo, "positions_bo": bo, "statics": st, "prices": prices, "fx": fx, "limits": limits, "pnl_fo": pnl_fo}
     src = config.load()[0]["sources"]
     for k, df in files.items():
         df.to_csv(out / f"{k}.csv", index=False, sep=src[k]["sep"], decimal=src[k]["decimal"])

@@ -7,6 +7,7 @@ import pandas as pd
 
 from riskreport import calendar as cal
 from riskreport import factors as F
+from riskreport import pnl as pnl_mod
 
 
 @dataclass
@@ -207,3 +208,19 @@ INPUT_CONTROLS = [c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11]
 
 def run_input_controls(inp):
     return [c(inp) for c in INPUT_CONTROLS]
+
+
+def _explain_ctl(cid, name, col, desks, cfg):
+    thr = pnl_mod.threshold(desks["pnl_fo" if col == "unexplained" else "pnl_hypo"], cfg)
+    exc = [f"{d}: {col} {r[col]:,.0f} EUR (threshold {thr[d]:,.0f})" for d, r in desks.iterrows() if abs(r[col]) > thr[d]]
+    return _res(cid, name, "A", exc)
+
+
+def c12(desks, cfg):
+    """FO P&L against the explained P&L, per desk: |FO - explained| <= max(5% of |FO P&L|, 10,000 EUR)."""
+    return _explain_ctl("C12", "P&L explain: FO gap within tolerance", "unexplained", desks, cfg)
+
+
+def c13(desks, cfg):
+    """The explain model against our own full revaluation: |hypothetical - explained| <= max(5% of |hypothetical|, 10,000 EUR)."""
+    return _explain_ctl("C13", "P&L explain: model residual within tolerance", "model_residual", desks, cfg)
