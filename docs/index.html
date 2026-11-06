@@ -1,8 +1,89 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>risk-report-chain demo</title>
-<style>:root{--bg:#fff;--fg:#1b1f23}@media(prefers-color-scheme:dark){:root{--bg:#14181c;--fg:#e6e9ec}}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,sans-serif}main{max-width:640px;margin:0 auto;padding:24px 16px}a{color:#1f6feb}</style></head>
-<body><main><h1>risk-report-chain</h1>
-<p>Two daily reports produced by the chain from synthetic data. Same inputs format, same code, one clean day and one day with injected defects.</p>
-<ul><li><a href="demo/ok.html">Clean day: VALIDATED</a> (<a href="demo/ok.xlsx">Excel</a>)</li>
-<li><a href="demo/bad.html">Day with 3 defects: NOT_VALIDATED</a> (<a href="demo/bad.xlsx">Excel</a>)</li></ul>
-<p><a href="postmortem-example.md">Post-mortem of the bad day</a> · <a href="https://github.com/louisdelacour21/risk-report-chain">Source on GitHub</a></p></main></body></html>
+<title>risk-report-chain</title>
+<meta name="description" content="Daily market-risk reporting chain: 14 data controls, P&L explain, VaR/ES with backtest, Excel report with a validation status. Synthetic data.">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#14181c;--mut:#5b6670;--line:#e1e5ea;--acc:#1f4fd8;--ok:#2E7D32;--bad:#C62828;--warn:#E69F00}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1317;--card:#171c21;--fg:#e8ebee;--mut:#9aa5b1;--line:#262d34;--acc:#7aa2ff;--ok:#5fbf6a;--bad:#ef6b6b;--warn:#f0b43c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:48px 20px 64px}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+.eyebrow{font:600 12px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+h1{font-size:clamp(32px,6vw,52px);line-height:1.08;margin:14px 0 16px;letter-spacing:-.02em;max-width:18ch}
+.lead{font-size:18px;color:var(--mut);max-width:62ch;margin:0 0 28px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px}
+.btn{display:inline-block;padding:10px 18px;border-radius:8px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.btn.p{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn:hover{text-decoration:none;opacity:.88}
+.shot{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.shot img{display:block;width:100%;height:auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:28px 0 8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.stat b{display:block;font-size:30px;line-height:1.1;letter-spacing:-.02em}
+.stat span{color:var(--mut);font-size:14px}
+h2{font-size:22px;margin:52px 0 6px;letter-spacing:-.01em}
+.sub{color:var(--mut);margin:0 0 18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:10px;padding:20px}
+.card.ok{--c:var(--ok)}.card.bad{--c:var(--bad)}
+.tag{font:700 12px/1 ui-monospace,Consolas,monospace;color:var(--c);letter-spacing:.06em}
+.card h3{margin:10px 0 6px;font-size:18px}
+.card p{margin:0 0 14px;color:var(--mut);font-size:15px}
+.card .links{display:flex;gap:16px;font-weight:600;font-size:15px}
+ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:10px}
+ol.steps li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px 12px 52px;position:relative}
+ol.steps li:before{content:counter(s);position:absolute;left:16px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--fg);color:var(--bg);font:700 13px/26px system-ui;text-align:center}
+.docs{display:flex;flex-wrap:wrap;gap:10px}
+.docs a{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600}
+.note{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--mut);font-size:14px}
+</style></head>
+<body><main>
+<div class="eyebrow">Market risk &middot; daily reporting &middot; Python</div>
+<h1>Can we trust today's numbers?</h1>
+<p class="lead">Every morning, before a risk team publishes its numbers, someone has to answer that question. This chain does it: it checks the day's data, computes P&amp;L explain, VaR/ES and a VaR backtest, and writes an Excel report that carries a validation status.</p>
+<div class="cta">
+<a class="btn p" href="demo/bad.html">See a rejected day</a>
+<a class="btn" href="demo/ok.html">See a clean day</a>
+<a class="btn" href="https://github.com/louisdelacour21/risk-report-chain">Source on GitHub</a>
+</div>
+
+<div class="shot"><img src="img/demo.gif" alt="A clean day (green banner) then a day with three injected defects (red banner)" width="1100" height="640"></div>
+
+<div class="stats">
+<div class="stat"><b>14</b><span>data controls, mapped to BCBS 239</span></div>
+<div class="stat"><b>400/400</b><span>runs catch each of 7 injected defect types</span></div>
+<div class="stat"><b>2.5%</b><span>false alarms on clean days (10 in 400)</span></div>
+<div class="stat"><b>1e-9</b><span>replay tolerance on every archived run</span></div>
+</div>
+
+<h2>Two days, same code</h2>
+<p class="sub">Both reports come from the same chain on synthetic data. Excel files are next to them.</p>
+<div class="cards">
+<div class="card ok"><div class="tag">VALIDATED</div><h3>A clean day</h3>
+<p>All controls pass, status green, report ready to circulate. The VaR backtest is shown but never changes the status.</p>
+<div class="links"><a href="demo/ok.html">Open report</a><a href="demo/ok.xlsx">Excel</a></div></div>
+<div class="card bad"><div class="tag">NOT_VALIDATED</div><h3>A day with 3 injected defects</h3>
+<p>A duplicate, a stale price and a P&amp;L gap. The workbook is still produced, with a red "do not circulate" banner.</p>
+<div class="links"><a href="demo/bad.html">Open report</a><a href="demo/bad.xlsx">Excel</a><a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/postmortem-example.md">Post-mortem</a></div></div>
+</div>
+
+<h2>What happens each morning</h2>
+<p class="sub">About 10 seconds on a laptop.</p>
+<ol class="steps">
+<li>Ingest 8 CSV extractions with strict schemas, for 3 desks and about 52 positions.</li>
+<li>Run controls C01&ndash;C11, then compute hypothetical P&amp;L, explain by factor, VaR 99% / ES 97.5% (full revaluation) and limit usage.</li>
+<li>Backtest the VaR with Kupiec's test and the Basel traffic light.</li>
+<li>Write an 8-sheet workbook, then re-read it (C14) to check it matches the computed numbers.</li>
+<li>Archive inputs, outputs and a SHA-256 manifest; <code>rerun</code> replays any day and compares every number.</li>
+</ol>
+
+<h2>Read more</h2>
+<div class="docs">
+<a href="https://github.com/louisdelacour21/risk-report-chain#benchmark-with-known-truth">Benchmark with known truth</a>
+<a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/methodologie.md">Methodology</a>
+<a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/bcbs239.md">BCBS 239 mapping</a>
+<a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/real-data.md">What would change with real data</a>
+</div>
+
+<p class="note">All data is synthetic. The chain checking itself is not an independent validation.</p>
+</main></body></html>
