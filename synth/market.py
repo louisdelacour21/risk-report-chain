@@ -6,14 +6,9 @@ import numpy as np
 import pandas as pd
 
 from riskreport import calendar as cal
+from riskreport.factors import EQ, FACTORS, FX, IV, OPT_UND, YLD, kind  # noqa: F401  (re-exported for the generator)
 
-EQ = [f"EQ{i}" for i in range(1, 9)]
-OPT_UND = EQ[:4]
-IV = [f"IV_{u}" for u in OPT_UND]
-FX = ["EURUSD", "EURGBP", "EURJPY"]
-YLD = ["DE2Y", "DE5Y", "DE10Y", "FR10Y", "IT10Y"]
-FACTORS = EQ + ["IDX"] + FX + YLD + IV
-KIND = {**{f: "logret" for f in EQ + ["IDX"] + FX}, **{f: "bp" for f in YLD}, **{f: "volpt" for f in IV}}
+KIND = {f: kind(f) for f in FACTORS}
 NU, ALPHA, BETA = 4, 0.08, 0.90
 
 EQ_VOL = np.array([0.18, 0.22, 0.25, 0.28, 0.30, 0.33, 0.36, 0.38])

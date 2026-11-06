@@ -9,6 +9,7 @@ import pandas as pd
 import tomllib
 
 from riskreport import calendar as cal
+from riskreport import config
 from synth import market as M
 
 DEFECTS = ["missing_price", "stale_price", "duplicate", "qty_break", "jump_9sigma", "missing_fx", "var_limit_breach", "dv01_breach"]
@@ -77,9 +78,10 @@ def write_day(out, asof=date(2026, 10, 30), seed=42, n_days=750, defects=()):
     if "missing_fx" in used:
         fx = fx[~((fx.pair == "EURGBP") & (fx.date == asof.isoformat()))]
     files = {"positions_fo": fo, "positions_bo": bo, "statics": st, "prices": prices, "fx": fx, "limits": limits}
+    src = config.load()[0]["sources"]
     for k, df in files.items():
-        df.to_csv(out / f"{k}.csv", index=False)
-    hist.to_csv(out / "factor_history.csv", index_label="date")
+        df.to_csv(out / f"{k}.csv", index=False, sep=src[k]["sep"], decimal=src[k]["decimal"])
+    hist.to_csv(out / "factor_history.csv", index_label="date", sep=src["factor_history"]["sep"], decimal=src["factor_history"]["decimal"])
     (out / "truth.json").write_text(json.dumps({"seed": seed, "nu": M.NU, "alpha": M.ALPHA, "beta": M.BETA, "defects": sorted(used)}))
     sig.tail(500).to_csv(out / "true_sigma.csv", index_label="date")
     return out

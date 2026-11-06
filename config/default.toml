@@ -21,3 +21,26 @@ explain_abs_eur = 10000
 [synth]
 seed = 42
 n_days = 750
+
+# CSV dialect per source (what the extractions really look like: back office exports with ';' and decimal comma)
+[sources.positions_fo]
+sep = ","
+decimal = "."
+[sources.positions_bo]
+sep = ";"
+decimal = ","
+[sources.statics]
+sep = ","
+decimal = "."
+[sources.prices]
+sep = ","
+decimal = "."
+[sources.fx]
+sep = ","
+decimal = "."
+[sources.limits]
+sep = ";"
+decimal = ","
+[sources.factor_history]
+sep = ","
+decimal = "."
