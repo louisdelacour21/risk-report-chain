@@ -1,0 +1,2 @@
+# Defects injected by `riskreport generate-demo --defects defects/demo.toml`. Each key is switched on by listing it.
+defects = ["missing_price", "stale_price", "duplicate", "qty_break", "jump_9sigma", "missing_fx", "var_limit_breach", "dv01_breach"]
