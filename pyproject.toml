@@ -5,10 +5,10 @@ description = "Daily market-risk reporting chain: controlled Excel report (VaR/E
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-dependencies = ["pandas>=2.2", "numpy>=2.0", "XlsxWriter>=3.2", "openpyxl>=3.1.5", "pandera>=0.20", "riskhub-engine==0.1.0", "python-dateutil"]
+dependencies = ["pandas>=2.2", "numpy>=2.0", "XlsxWriter>=3.2", "openpyxl>=3.1.5", "pandera>=0.20", "riskhub-engine==0.1.0", "python-dateutil", "scipy>=1.11"]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "ruff", "scipy"]
+dev = ["pytest", "pytest-cov", "ruff"]
 
 [project.scripts]
 riskreport = "riskreport.cli:main"
