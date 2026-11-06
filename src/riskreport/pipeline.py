@@ -41,6 +41,7 @@ def compute(run):
     run.pos = pnl.hypothetical(run.book, run.market, cfg)
     run.desks = pnl.by_desk(run.pos, inp.tables["pnl_fo"])
     run.res = risk.run(run.book, inp.tables["factor_history"], run.market, cfg)
+    run.res["backtest"] = risk.backtest(run.book, inp.tables["factor_history"], run.market, cfg)
     run.expo = risk.exposures(run.book, run.market, cfg)
     run.metrics = risk.metrics(run.res, run.expo)
     run.limits = risk.limits_status(run.metrics, inp.tables["limits"], cfg)

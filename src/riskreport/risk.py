@@ -5,6 +5,7 @@ and implied vols, vol floored at `vol_min`) and revalues every position one busi
 import numpy as np
 import pandas as pd
 from riskhub_engine import market
+from scipy.stats import chi2
 
 from riskreport import calendar as cal
 from riskreport import valuation as V
@@ -45,6 +46,37 @@ def run(book, hist, mk, cfg):
         "ES975": [market.historical(desk_pl[d], r["es_conf"])["es"] for d in DESKS],
         "ES975_contribution": [-desk_pl[d][worst].mean() for d in DESKS]}, index=DESKS)  # additive: sums to the portfolio ES
     return out
+
+
+def kupiec(x, n, p):
+    """Kupiec proportion-of-failures likelihood ratio and its chi2(1) p-value; x exceptions out of n at tail probability p."""
+    if x == 0:
+        lr = -2 * n * np.log(1 - p)
+    elif x == n:
+        lr = -2 * n * np.log(p)
+    else:
+        lr = -2 * ((n - x) * np.log((1 - p) / (1 - x / n)) + x * np.log(p / (x / n)))
+    return float(lr), float(chi2.sf(lr, 1))
+
+
+def backtest(book, hist, mk, cfg):
+    """Hypothetical backtest of the 1-day VaR with the book held fixed: every historical change is applied to today's levels once, the VaR of
+    day t is taken on the `n_scenarios` changes before t, and an exception is a day whose P&L is below -VaR. Days are the history rows beyond
+    the first window (about 249 with the demo data). Basel traffic light on 250 days: green up to 4 exceptions, yellow 5-9, red 10 or more."""
+    n = cfg["run"]["n_scenarios"]
+    lev, fx = scenarios(hist, mk, {**cfg, "run": {**cfg["run"], "n_scenarios": len(hist) - 1}})
+    age = (cal.next_(mk.asof) - mk.asof).days / V.DAYS
+    base = V.value(book, mk.lev, mk.fx, mk.asof, 0.0, cfg)[0]
+    pl = (V.value(book, lev, fx, mk.asof, age, cfg) - base).sum(axis=1)
+    conf = cfg["run"]["var_conf"]
+    var = np.array([market.historical(pl[t - n:t], conf)["var"] for t in range(n, len(pl))])
+    pnl = pl[n:]
+    exc = pnl < -var
+    x, days = int(exc.sum()), len(pnl)
+    lr, pval = kupiec(x, days, 1 - conf)
+    zone = "GREEN" if x <= 4 else "YELLOW" if x <= 9 else "RED"
+    return {"days": days, "exceptions": x, "expected": days * (1 - conf), "kupiec_lr": lr, "kupiec_p": pval, "zone": zone,
+            "pnl": pnl, "var": var, "exc": exc}
 
 
 def exposures(book, mk, cfg):

@@ -1,6 +1,6 @@
 """Known-truth benchmark: for each seed, one clean day and one day per injected defect; the chain must reach the expected status.
 Detection = status is the expected one (or worse) on a defective day; false alarm = status other than VALIDATED on a clean day.
-Rule fixed before the run. Wilson 95% intervals. Usage: python bench/benchmark.py N_SEEDS [OUT.json]"""
+Rule fixed before the run. Wilson 95% intervals. Usage: python -m bench.benchmark N_SEEDS [OUT.json] [FIRST_SEED]"""
 import json
 import math
 import sys
@@ -35,19 +35,24 @@ def one(tmp, seed, defect):
     return run
 
 
-def main(n, out=None):
+def main(n, out=None, start=1):
     hits = {k: 0 for k in [*EXPECT, "var_limit_breach", "dv01_breach", "clean"]}
+    missed = {k: [] for k in hits}  # seeds where the case did not behave as expected
     t0 = time.time()
     with tempfile.TemporaryDirectory() as tmp:
-        for seed in range(1, n + 1):
+        for seed in range(start, start + n):
             r = one(tmp, seed, None)
-            hits["clean"] += r.status != "VALIDATED"  # false alarm
+            hit = {"clean": r.status != "VALIDATED"}  # false alarm
             for dft, want in EXPECT.items():
-                hits[dft] += RANK[one(tmp, seed, dft).status] >= RANK[want]
+                hit[dft] = RANK[one(tmp, seed, dft).status] >= RANK[want]
             for dft in ("var_limit_breach", "dv01_breach"):
                 r = one(tmp, seed, dft)
-                hits[dft] += r.status == "VALIDATED" and (r.limits.status == "BREACH").any()
-    res = {k: {"hits": int(v), "n": n, "wilson95": wilson(int(v), n)} for k, v in hits.items()}
+                hit[dft] = bool(r.status == "VALIDATED" and (r.limits.status == "BREACH").any())
+            for k, v in hit.items():
+                hits[k] += v
+                if v if k == "clean" else not v:  # a false alarm on a clean day, or a defect not caught
+                    missed[k].append(seed)
+    res = {k: {"hits": int(v), "n": n, "wilson95": wilson(int(v), n), "seeds": missed[k]} for k, v in hits.items()}
     res["clean"]["meaning"] = "false alarms on clean days"
     res["seconds"] = round(time.time() - t0)
     text = json.dumps(res, indent=1)
@@ -57,4 +62,4 @@ def main(n, out=None):
 
 
 if __name__ == "__main__":
-    main(int(sys.argv[1]), sys.argv[2] if len(sys.argv) > 2 else None)
+    main(int(sys.argv[1]), sys.argv[2] if len(sys.argv) > 2 else None, int(sys.argv[3]) if len(sys.argv) > 3 else 1)

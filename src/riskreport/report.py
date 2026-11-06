@@ -26,6 +26,9 @@ def commentary(run):
     top = r["desk"].ES975_contribution.idxmax()
     out.append(f"Largest ES contributor: {top} ({r['desk'].ES975_contribution[top]:,.0f} EUR, "
                f"{r['desk'].ES975_contribution[top] / r['es']:.0%} of ES).")
+    b = r["backtest"]
+    out.append(f"VaR backtest: {b['exceptions']} exceptions in {b['days']} days (expected {b['expected']:.1f}), "
+               f"Kupiec p = {b['kupiec_p']:.2f}, Basel zone {b['zone']}.")
     bad = run.limits[run.limits.status != "OK"]
     out.append("All limits OK." if bad.empty else "Limits: " + "; ".join(f"{x.desk} {x.metric} {x.status} ({x.usage:.0%})" for x in bad.itertuples()) + ".")
     fails = [c for c in run.controls if not c.ok]
@@ -86,6 +89,12 @@ def write(run, out_dir):
         v.write_number(23, 1, float(r["var"]), fmt["n"])
         v.write(24, 0, "ES 97.5%")
         v.write_number(24, 1, float(r["es"]), fmt["n"])
+        b = r["backtest"]
+        v.write(27, 0, "VaR backtest (book held fixed)", fmt["h"])
+        for i, (k, val) in enumerate([("Days tested", b["days"]), ("Exceptions", b["exceptions"]), ("Expected", b["expected"]),
+                                      ("Kupiec LR", b["kupiec_lr"]), ("Kupiec p-value", b["kupiec_p"]), ("Basel traffic light", b["zone"])], 28):
+            v.write(i, 0, k)
+            v.write(i, 1, val, fmt["n"] if isinstance(val, float) else None)
         g = run.expo.groupby(["desk", "factor"])[["delta_eur", "gamma_eur", "vega_eur", "dv01", "fx_eur"]].sum().reset_index()
         _table(ws["Sensitivities"], 0, ["Desk / factor", "Delta EUR", "Gamma EUR (1%)", "Vega EUR (1 pt)", "DV01 EUR", "FX EUR"],
                [[f"{x.desk} / {x.factor}", x.delta_eur, x.gamma_eur, x.vega_eur, x.dv01, x.fx_eur] for x in g.itertuples()], fmt)

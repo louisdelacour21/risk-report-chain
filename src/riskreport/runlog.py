@@ -38,6 +38,7 @@ def numbers(run):
         out[f"unexplained.{d}"] = float(run.desks.unexplained[d])
         out[f"var99.{d}"] = float(run.res["desk"].VAR99[d])
         out[f"es975.{d}"] = float(run.res["desk"].ES975[d])
+    out["backtest.exceptions"] = float(run.res["backtest"]["exceptions"])
     out.update({f"metric.{d}.{k}": float(v) for (d, k), v in run.metrics.items()})
     return out
 

@@ -1,0 +1,118 @@
+{
+ "missing_price": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ],
+  "seeds": []
+ },
+ "stale_price": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ],
+  "seeds": []
+ },
+ "duplicate": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ],
+  "seeds": []
+ },
+ "qty_break": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ],
+  "seeds": []
+ },
+ "jump_9sigma": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ],
+  "seeds": []
+ },
+ "missing_fx": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ],
+  "seeds": []
+ },
+ "pnl_gap": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ],
+  "seeds": []
+ },
+ "var_limit_breach": {
+  "hits": 193,
+  "n": 200,
+  "wilson95": [
+   0.93,
+   0.983
+  ],
+  "seeds": [
+   242,
+   265,
+   280,
+   310,
+   314,
+   328,
+   332
+  ]
+ },
+ "dv01_breach": {
+  "hits": 193,
+  "n": 200,
+  "wilson95": [
+   0.93,
+   0.983
+  ],
+  "seeds": [
+   242,
+   265,
+   280,
+   310,
+   314,
+   328,
+   332
+  ]
+ },
+ "clean": {
+  "hits": 7,
+  "n": 200,
+  "wilson95": [
+   0.017,
+   0.07
+  ],
+  "seeds": [
+   242,
+   265,
+   280,
+   310,
+   314,
+   328,
+   332
+  ],
+  "meaning": "false alarms on clean days"
+ },
+ "seconds": 1695
+}

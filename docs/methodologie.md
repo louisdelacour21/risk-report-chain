@@ -17,6 +17,9 @@ Greeks are taken at the T-1 state: `delta*dS + 1/2*gamma*dS^2 + vega*dIV + theta
 ## VaR and ES
 500 historical scenarios drawn from `factor_history`, each applied to the current book with full revaluation at the next business day. VaR 99% is the 5th worst scenario; ES 97.5% is the mean of the 13 worst (`ceil(12.5)`). Desk ES contributions are the desk's mean P&L over the portfolio's 13 worst scenarios, so they add up to the total. The engine is `riskhub-engine` 0.1.0 (`market.historical`).
 
+## Backtest
+The book is held fixed and each historical change is applied once to today's levels. The VaR of day t uses the 500 changes before t; an exception is a day whose P&L is below -VaR. With 750 days of history, 249 days are tested. Kupiec's proportion-of-failures likelihood ratio is compared with chi2(1); the Basel traffic light uses 4 / 9 exceptions as the green / yellow limits. The result is reported, never blocking.
+
 ## Limits
 Usage = value / limit. OK below 85%, ALERT from 85% to 100%, BREACH above 100%. A breach is a **result**, reported in the workbook and the commentary; it does not change the run status.
 

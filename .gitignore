@@ -6,3 +6,5 @@ __pycache__/
 out/
 data/
 runs/
+docs/demo/inbox_*/
+docs/demo/runs_*/

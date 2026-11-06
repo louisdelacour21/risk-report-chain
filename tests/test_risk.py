@@ -57,3 +57,17 @@ def test_unknown_metric_reported():
     import pandas as pd
     st = risk.limits_status({}, pd.DataFrame([{"desk": "FX", "metric": "FOO", "limit": 1.0}]), CFG)
     assert st.status.iloc[0] == "NO METRIC"
+
+
+def test_kupiec_known_values():
+    """Zero exceptions: LR = -2 n ln(1-p); exactly the expected rate: LR = 0 and p-value 1."""
+    assert risk.kupiec(0, 250, 0.01)[0] == pytest.approx(-2 * 250 * np.log(0.99))
+    lr, p = risk.kupiec(5, 500, 0.01)
+    assert lr == pytest.approx(0.0, abs=1e-12) and p == pytest.approx(1.0)
+
+
+def test_backtest_shape_and_zone(tmp_path):
+    inp = ingest.load(g.write_day(tmp_path, ASOF), ASOF, CFG)
+    b = risk.backtest(V.build_book(inp), inp.tables["factor_history"], V.market(inp), CFG)
+    assert b["days"] == 249 and len(b["var"]) == 249 and b["exceptions"] == int(b["exc"].sum())
+    assert b["zone"] == ("GREEN" if b["exceptions"] <= 4 else "YELLOW" if b["exceptions"] <= 9 else "RED")

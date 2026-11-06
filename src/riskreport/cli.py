@@ -1,4 +1,5 @@
 import argparse
+import shutil
 import sys
 import traceback
 from datetime import date
@@ -52,6 +53,34 @@ def _demo(a):
     return 0
 
 
+def _html(a):
+    from riskreport import htmlview
+
+    print(htmlview.render(a.xlsx, a.out))
+    return 0
+
+
+def _showcase(a):
+    """One command to see everything: a clean day and a day with injected defects, both run, the clean one replayed, HTML views written."""
+    from synth import generate
+
+    from riskreport import htmlview
+
+    asof, out, codes = date(2026, 10, 30), Path(a.out), {}
+    for name, defects in (("ok", []), ("bad", ["duplicate", "stale_price", "pnl_gap"])):
+        inbox = out / f"inbox_{name}"
+        generate.write_day(inbox, asof, a.seed, defects=defects)
+        run, d = runlog.execute(inbox / asof.isoformat(), asof, out / f"runs_{name}")
+        htmlview.render(d / "report.xlsx", out / f"{name}.html")
+        shutil.copy(d / "report.xlsx", out / f"{name}.xlsx")
+        codes[name] = run.status
+        print(f"{name}: {run.status} -> {out / (name + '.html')}")
+        if name == "ok":
+            diffs = runlog.rerun(d)
+            print("replay:", "identical (1e-9)" if not diffs else diffs)
+    return 0
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="riskreport", description="Daily market-risk reporting chain")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -69,6 +98,14 @@ def main(argv=None):
         if name == "generate-demo":
             s.add_argument("--defects", help="TOML file with defects = [...]")
             s.add_argument("--seed", type=int, default=42)
+    h = sub.add_parser("html", help="static HTML view of a report workbook")
+    h.add_argument("xlsx")
+    h.add_argument("out")
+    h.set_defaults(fn=_html)
+    sc = sub.add_parser("showcase", help="clean day + defective day + replay + HTML views, in one command")
+    sc.add_argument("--out", default="showcase")
+    sc.add_argument("--seed", type=int, default=42)
+    sc.set_defaults(fn=_showcase)
     a = p.parse_args(argv)
     try:
         return a.fn(a)
