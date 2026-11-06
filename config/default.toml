@@ -44,3 +44,7 @@ decimal = ","
 [sources.factor_history]
 sep = ","
 decimal = "."
+
+[valuation]
+r = 0.025   # flat risk-free for Black-Scholes
+q = 0.015   # flat dividend yield
