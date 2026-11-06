@@ -1,4 +1,5 @@
 """Excel workbook (XlsxWriter, 8 sheets) with template-based commentary, and the C14 re-read check (openpyxl)."""
+import json
 from pathlib import Path
 
 import numpy as np
@@ -101,7 +102,8 @@ def write(run, out_dir):
            [[f"{c.id} {c.name}", "blocking" if c.severity == "B" else "alert", "PASS" if c.ok else "FAIL", float(c.n)] for c in run.controls], fmt)
     _table(ws["DQ_Exceptions"], 0, ["Control", "Exception"], [[c.id, x] for c in run.controls for x in c.exceptions], fmt)
     ws["DQ_Exceptions"].set_column(1, 1, 90)
-    ws["Journal"].write(0, 0, "Run journal: written by the runlog step (JSON Lines in the archive).")
+    _table(ws["Journal"], 0, ["Item", "Value"], [[k, json.dumps(v) if isinstance(v, dict) else v] for k, v in run.meta.items()], fmt)
+    ws["Journal"].write(len(run.meta) + 2, 0, "Full journal: journal.jsonl in the archive folder.")
     wb.close()
     return path
 

@@ -26,6 +26,7 @@ class Run:
     metrics: dict = field(default_factory=dict)
     market: object = None
     book: object = None
+    meta: dict = field(default_factory=dict)
 
 
 def status_of(controls):
@@ -47,10 +48,10 @@ def compute(run):
     run.computed = True
 
 
-def execute(folder, asof, out_dir, cfg_path=config.DEFAULT, reread=True):
+def execute(folder, asof, out_dir, cfg_path=config.DEFAULT, reread=True, meta=None):
     cfg, sha = config.load(cfg_path)
     inp = ingest.load(folder, asof, cfg)
-    run = Run(asof, sha, inp, C.run_input_controls(inp))
+    run = Run(asof, sha, inp, C.run_input_controls(inp), meta=meta or {})
     blocking_failed = {c.id for c in run.controls if not c.ok and c.severity == "B"}
     if not blocking_failed & set(NEEDED):
         compute(run)
