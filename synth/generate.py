@@ -9,7 +9,7 @@ import pandas as pd
 import tomllib
 
 from riskreport import calendar as cal
-from riskreport import config, pnl
+from riskreport import config, pnl, risk
 from riskreport import valuation as V
 from synth import market as M
 
@@ -47,11 +47,35 @@ def build_book(seed=42, asof=date(2026, 10, 30)):
     return pd.DataFrame(st), pd.DataFrame(pos)
 
 
-def fo_pnl(st, pos, lev, asof, seed):
-    """FO P&L = true hypothetical P&L + intraday new-trade effect on a few lines + fees + 1% noise (all independent of the explain model)."""
+def clean_state(st, pos, lev, asof):
     book = pos.merge(st.drop(columns=["desk"]), on="instrument", how="left")
     lv = lev.iloc[-1].to_dict()
-    mk = V.Mkt(asof, cal.previous(asof), lev.iloc[-2].to_dict(), lv, {p: lev.iloc[-2][p] for p in M.FX}, {p: lv[p] for p in M.FX}, [])
+    return book, V.Mkt(asof, cal.previous(asof), lev.iloc[-2].to_dict(), lv, {p: lev.iloc[-2][p] for p in M.FX}, {p: lv[p] for p in M.FX}, [])
+
+
+USAGE = {("EQUITY", "VAR99"): .60, ("EQUITY", "ES975"): .65, ("RATES", "VAR99"): .55, ("RATES", "ES975"): .60, ("FX", "VAR99"): .50,
+         ("FX", "ES975"): .55, ("TOTAL", "VAR99"): .70, ("TOTAL", "ES975"): .72, ("EQUITY", "DELTA_EUR"): .55, ("RATES", "DV01"): .70,
+         ("FX", "FX_EXPOSURE"): .50}
+
+
+def make_limits(st, pos, lev, asof, defects=()):
+    """Limits sized so every metric starts at 50-72 % usage on the clean day; defects push one metric over its limit."""
+    book, mk = clean_state(st, pos, lev, asof)
+    res = risk.run(book, lev, mk, config.load()[0])
+    m = risk.metrics(res, risk.exposures(book, mk, config.load()[0]))
+    rows = []
+    for (d, k), u in USAGE.items():
+        if (d, k) == ("EQUITY", "VAR99") and "var_limit_breach" in defects:
+            u = 1.25
+        if (d, k) == ("RATES", "DV01") and "dv01_breach" in defects:
+            u = 1.20
+        rows.append({"desk": d, "metric": k, "limit": float(np.ceil(m[(d, k)] / u / 1000) * 1000)})
+    return pd.DataFrame(rows)
+
+
+def fo_pnl(st, pos, lev, asof, seed):
+    """FO P&L = true hypothetical P&L + intraday new-trade effect on a few lines + fees + 1% noise (all independent of the explain model)."""
+    book, mk = clean_state(st, pos, lev, asof)
     h = pnl.hypothetical(book, mk, config.load()[0])
     rng = np.random.default_rng(seed + 7)
     fo = h.pnl_hypo * (1 + 0.01 * rng.standard_normal(len(h))) - 0.00002 * np.abs(book.quantity * book.multiplier) * (book.type != "FXCASH")  # fees
@@ -69,7 +93,7 @@ def write_day(out, asof=date(2026, 10, 30), seed=42, n_days=750, defects=()):
     last6 = lev.index[-6:]
     prices = pd.DataFrame([{"date": d.date().isoformat(), "instrument": r.instrument, "price": float(lev.loc[d, r.factor])} for d in last6 for r in prc_inst.itertuples()])
     fx = pd.DataFrame([{"date": d.date().isoformat(), "pair": p, "rate": float(lev.loc[d, p])} for d in last6 for p in M.FX])
-    limits = pd.DataFrame(columns=["desk", "metric", "limit"])  # filled by the limits step once the metrics exist
+    limits = make_limits(st, pos, lev, asof, defects)
     pnl_fo = fo_pnl(st, pos, lev, asof, seed)
     hist = lev.copy()
     hist.index = [d.date().isoformat() for d in hist.index]
