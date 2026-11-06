@@ -1,0 +1,84 @@
+{
+ "missing_price": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ]
+ },
+ "stale_price": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ]
+ },
+ "duplicate": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ]
+ },
+ "qty_break": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ]
+ },
+ "jump_9sigma": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ]
+ },
+ "missing_fx": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ]
+ },
+ "pnl_gap": {
+  "hits": 200,
+  "n": 200,
+  "wilson95": [
+   0.981,
+   1.0
+  ]
+ },
+ "var_limit_breach": {
+  "hits": 197,
+  "n": 200,
+  "wilson95": [
+   0.957,
+   0.995
+  ]
+ },
+ "dv01_breach": {
+  "hits": 197,
+  "n": 200,
+  "wilson95": [
+   0.957,
+   0.995
+  ]
+ },
+ "clean": {
+  "hits": 3,
+  "n": 200,
+  "wilson95": [
+   0.005,
+   0.043
+  ],
+  "meaning": "false alarms on clean days"
+ },
+ "seconds": 1260
+}
