@@ -1,89 +1,170 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>risk-report-chain</title>
 <meta name="description" content="Daily market-risk reporting chain: 14 data controls, P&L explain, VaR/ES with backtest, Excel report with a validation status. Synthetic data.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--fg:#14181c;--mut:#5b6670;--line:#e1e5ea;--acc:#1f4fd8;--ok:#2E7D32;--bad:#C62828;--warn:#E69F00}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1317;--card:#171c21;--fg:#e8ebee;--mut:#9aa5b1;--line:#262d34;--acc:#7aa2ff;--ok:#5fbf6a;--bad:#ef6b6b;--warn:#f0b43c}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:980px;margin:0 auto;padding:48px 20px 64px}
-a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
-.eyebrow{font:600 12px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
-h1{font-size:clamp(32px,6vw,52px);line-height:1.08;margin:14px 0 16px;letter-spacing:-.02em;max-width:18ch}
-.lead{font-size:18px;color:var(--mut);max-width:62ch;margin:0 0 28px}
-.cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px}
-.btn{display:inline-block;padding:10px 18px;border-radius:8px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--fg)}
-.btn.p{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.btn:hover{text-decoration:none;opacity:.88}
-.shot{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
-.shot img{display:block;width:100%;height:auto}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:28px 0 8px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
-.stat b{display:block;font-size:30px;line-height:1.1;letter-spacing:-.02em}
-.stat span{color:var(--mut);font-size:14px}
-h2{font-size:22px;margin:52px 0 6px;letter-spacing:-.01em}
-.sub{color:var(--mut);margin:0 0 18px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:10px;padding:20px}
-.card.ok{--c:var(--ok)}.card.bad{--c:var(--bad)}
-.tag{font:700 12px/1 ui-monospace,Consolas,monospace;color:var(--c);letter-spacing:.06em}
-.card h3{margin:10px 0 6px;font-size:18px}
-.card p{margin:0 0 14px;color:var(--mut);font-size:15px}
-.card .links{display:flex;gap:16px;font-weight:600;font-size:15px}
-ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:10px}
-ol.steps li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px 12px 52px;position:relative}
-ol.steps li:before{content:counter(s);position:absolute;left:16px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--fg);color:var(--bg);font:700 13px/26px system-ui;text-align:center}
-.docs{display:flex;flex-wrap:wrap;gap:10px}
-.docs a{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600}
-.note{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--mut);font-size:14px}
+:root{--bg:#111;--surface:#1c1c1c;--stage:#262626;--ink:#f2f2f2;--muted:#a3a3a3;--accent:#a08672;--accent-ink:#111;--ok:#2E7D32;--bad:#C62828;
+--m:clamp(16px,3.2vw,44px);--r:4px;--display:"League Spartan","Arial Narrow",system-ui,sans-serif;--text:Figtree,system-ui,"Segoe UI",sans-serif;
+--small:clamp(.8125rem,.79rem + .1vw,.875rem);--body:clamp(1.0625rem,1rem + .25vw,1.1875rem);--lead:clamp(1.25rem,1.1rem + .7vw,1.625rem);--head:clamp(2.1rem,1.2rem + 3.6vw,4.4rem)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--body)/1.5 var(--text)}
+a{color:var(--ink)}a:hover{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.wrap{padding:0 var(--m)}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.04em;line-height:.92;margin:0}
+h1{font-size:var(--head)}h2{font-size:var(--head)}
+p{margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;padding:28px var(--m)}
+.top b{font:700 1.375rem/1 var(--display);letter-spacing:-.03em}
+.top a{font-size:var(--small);font-weight:600}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-ink);font:600 1rem/1 var(--text);padding:16px 22px;border-radius:var(--r);text-decoration:none;border:0;cursor:pointer;transition:transform .15s,background .15s}
+.btn:hover{background:#b89c86;color:var(--accent-ink);transform:translateY(-2px)}.btn:active{transform:translateY(0)}
+.link{font-weight:600;margin-left:20px}
+/* hero */
+.hero{display:grid;grid-template-columns:repeat(12,1fr);gap:0 24px;padding:clamp(24px,5vw,72px) var(--m) clamp(80px,10vw,160px);align-items:start}
+.hero .copy{grid-column:1/6;padding-top:clamp(0px,3vw,40px)}
+.hero p.lead{font-size:var(--lead);line-height:1.35;margin:28px 0 36px;max-width:30ch}
+.hero .fragwrap{grid-column:6/13}
+/* live fragment */
+.frag{background:var(--surface);border-radius:var(--r);overflow:hidden;font-size:15px}
+.banner{padding:18px 20px;font:700 clamp(1.05rem,.9rem + .6vw,1.4rem)/1.1 var(--text);color:#fff;background:var(--ok);transition:background .6s}
+.frag[data-day=bad] .banner{background:var(--bad)}
+.days{display:flex;gap:8px;padding:12px;background:var(--stage)}
+.days button{flex:1;font:600 15px/1 var(--text);color:var(--muted);background:transparent;border:0;border-radius:var(--r);padding:12px;cursor:pointer;transition:background .2s,color .2s}
+.days button[aria-pressed=true]{background:var(--ink);color:#111}
+.days button:hover{color:var(--ink)}.days button[aria-pressed=true]:hover{color:#111}
+.rows{padding:12px;display:grid;gap:4px}
+.row{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;background:var(--stage);border-radius:var(--r);padding:0 0 0 12px;min-height:38px;font-variant-numeric:tabular-nums}
+.row i{font-style:normal;color:var(--muted);font-weight:600}
+.row span.st{align-self:stretch;display:flex;align-items:center;justify-content:center;min-width:76px;background:var(--ok);color:#fff;font-weight:600;font-size:13px;border-radius:0 var(--r) var(--r) 0;transition:background .6s}
+.row.fail span.st{background:var(--bad)}
+.frag .note{padding:4px 16px 16px;color:var(--muted);font-size:var(--small)}
+/* reports */
+.sec{padding:clamp(80px,10vw,180px) var(--m)}
+.reports{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;align-items:end}
+.reports .t{grid-column:1/6}
+.reports .t p{font-size:var(--lead);line-height:1.35;margin-top:24px;max-width:26ch}
+.pic{grid-column:span 4;display:block;text-decoration:none}
+.pic img{display:block;width:100%;height:clamp(300px,34vw,520px);object-fit:cover;object-position:top;border-radius:var(--r);transition:transform .3s}
+.pic:hover img{transform:translateY(-4px)}
+.pic span{display:block;margin-top:14px;font-weight:600}
+.pic small{display:block;color:var(--muted);font-size:var(--small);font-weight:400}
+/* pinned */
+.pin{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;padding:0 var(--m)}
+.pin h2{grid-column:1/13;padding-bottom:clamp(32px,5vw,72px)}
+.steps{grid-column:1/6}
+.step{min-height:70vh;display:flex;flex-direction:column;justify-content:center;gap:14px;color:var(--muted);transition:color .4s}
+.step.on{color:var(--ink)}
+.step b{font:700 clamp(1.75rem,1.2rem + 1.6vw,2.4rem)/1.02 var(--display);letter-spacing:-.03em;display:block}
+.step p{font-size:1rem;max-width:34ch}
+.stagewrap{grid-column:7/13;align-self:start;position:sticky;top:14vh;height:min(520px,72vh)}
+.stage{background:var(--stage);border-radius:var(--r);height:100%;position:relative;overflow:hidden}
+.pane{position:absolute;inset:0;padding:28px;display:flex;flex-direction:column;justify-content:center;gap:12px;opacity:0;transition:opacity .6s;pointer-events:none}
+.pane.on{opacity:1;pointer-events:auto}
+.big{font:700 clamp(2rem,1.3rem + 2.6vw,3.4rem)/.95 var(--display);letter-spacing:-.03em}
+.kv{display:grid;grid-template-columns:1fr auto;gap:10px 16px;background:var(--surface);border-radius:var(--r);padding:16px;font-variant-numeric:tabular-nums}
+.kv span:nth-child(odd){color:var(--muted)}.kv span:nth-child(even){font-weight:600;text-align:right}
+.tag{display:inline-block;background:var(--ok);color:#fff;font-weight:600;font-size:13px;padding:4px 10px;border-radius:var(--r)}
+pre{margin:0;background:var(--surface);border-radius:var(--r);padding:16px;overflow-x:auto;font:14px/1.6 Consolas,"SFMono-Regular",monospace;color:var(--ink)}
+/* proof */
+.proof{display:flex;justify-content:space-between;align-items:baseline;gap:24px 40px;flex-wrap:wrap;padding:clamp(100px,12vw,150px) var(--m)}
+.proof p{font-size:1.125rem}.proof strong{font:700 clamp(1.6rem,1.2rem + 1.4vw,2.4rem)/1 var(--display);letter-spacing:-.03em;display:block}
+.proof div span{color:var(--muted);font-size:var(--small)}
+/* cta */
+.cta{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;padding:clamp(80px,10vw,160px) var(--m);align-items:center;background:var(--surface)}
+.cta h2{grid-column:1/7}.cta .r{grid-column:8/13}
+.cta p{font-size:1rem;color:var(--muted);margin:20px 0 28px}
+/* footer */
+footer{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;padding:clamp(80px,12vw,200px) var(--m) 30px;font-size:var(--small)}
+footer span{color:var(--muted)}footer nav{display:flex;gap:24px}footer div:last-child{text-align:right}
+/* motion */
+.js .rise{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
+.js .rise.in{opacity:1;transform:none}
+@media(max-width:860px){
+.hero,.reports,.cta,.pin{display:block}.hero .copy{padding:0}.hero .fragwrap{margin-top:40px}
+.reports .t{margin-bottom:32px}.pic{margin-bottom:28px}
+.pin h2{padding-bottom:24px}
+.stagewrap{position:sticky;top:0;z-index:2;height:46svh;background:var(--bg);padding:12px 0}
+.step{min-height:58svh}
+.pane{padding:16px;gap:8px}.pane .big{font-size:2rem}
+.cta .r{margin-top:32px}
+footer{grid-template-columns:1fr;gap:8px;padding-top:120px}footer div:last-child{text-align:left}footer nav{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.js .rise{opacity:1;transform:none}}
 </style></head>
-<body><main>
-<div class="eyebrow">Market risk &middot; daily reporting &middot; Python</div>
+<body>
+<header class="top"><b>risk-report-chain</b><a href="https://github.com/louisdelacour21/risk-report-chain">Source on GitHub</a></header>
+<main>
+<section class="hero">
+<div class="copy rise">
 <h1>Can we trust today's numbers?</h1>
-<p class="lead">Every morning, before a risk team publishes its numbers, someone has to answer that question. This chain does it: it checks the day's data, computes P&amp;L explain, VaR/ES and a VaR backtest, and writes an Excel report that carries a validation status.</p>
-<div class="cta">
-<a class="btn p" href="demo/bad.html">See a rejected day</a>
-<a class="btn" href="demo/ok.html">See a clean day</a>
-<a class="btn" href="https://github.com/louisdelacour21/risk-report-chain">Source on GitHub</a>
+<p class="lead">Every morning this chain checks the risk data, computes VaR and P&amp;L explain, and stamps the Excel report validated or not.</p>
+<a class="btn" href="demo/bad.html">Open the rejected day</a><a class="link" href="demo/ok.html">Open the clean day</a>
 </div>
-
-<div class="shot"><img src="img/demo.gif" alt="A clean day (green banner) then a day with three injected defects (red banner)" width="1100" height="640"></div>
-
-<div class="stats">
-<div class="stat"><b>14</b><span>data controls, mapped to BCBS 239</span></div>
-<div class="stat"><b>400/400</b><span>runs catch each of 7 injected defect types</span></div>
-<div class="stat"><b>2.5%</b><span>false alarms on clean days (10 in 400)</span></div>
-<div class="stat"><b>1e-9</b><span>replay tolerance on every archived run</span></div>
+<div class="fragwrap rise">
+<div class="frag" data-ui data-day="ok" id="frag">
+<div class="banner" id="banner" role="status">VALIDATED - as of 2026-10-30</div>
+<div class="days" role="group" aria-label="Choose a day"><button type="button" aria-pressed="true" data-d="ok">Clean day</button><button type="button" aria-pressed="false" data-d="bad">Day with 3 defects</button></div>
+<div class="rows" id="rows"></div>
+<p class="note">The 14 controls of the chain, as they come out of the two demo days. Synthetic data.</p>
 </div>
-
-<h2>Two days, same code</h2>
-<p class="sub">Both reports come from the same chain on synthetic data. Excel files are next to them.</p>
-<div class="cards">
-<div class="card ok"><div class="tag">VALIDATED</div><h3>A clean day</h3>
-<p>All controls pass, status green, report ready to circulate. The VaR backtest is shown but never changes the status.</p>
-<div class="links"><a href="demo/ok.html">Open report</a><a href="demo/ok.xlsx">Excel</a></div></div>
-<div class="card bad"><div class="tag">NOT_VALIDATED</div><h3>A day with 3 injected defects</h3>
-<p>A duplicate, a stale price and a P&amp;L gap. The workbook is still produced, with a red "do not circulate" banner.</p>
-<div class="links"><a href="demo/bad.html">Open report</a><a href="demo/bad.xlsx">Excel</a><a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/postmortem-example.md">Post-mortem</a></div></div>
 </div>
+</section>
 
+<section class="sec reports">
+<div class="t rise"><h2>Two days, same code</h2><p>The workbook is always produced. Only the banner changes.</p></div>
+<a class="pic rise" href="demo/ok.html"><img src="img/ok.png" width="1100" height="1500" alt="Report of the clean day: green banner, commentary and desk table" loading="lazy"><span>The clean day<small>Green, ready to circulate</small></span></a>
+<a class="pic rise" href="demo/bad.html"><img src="img/bad.png" width="1100" height="1500" alt="Report of the defective day: red banner, do not circulate" loading="lazy"><span>The day with defects<small>Red, with the failed controls named</small></span></a>
+</section>
+
+<section class="pin" id="how">
 <h2>What happens each morning</h2>
-<p class="sub">About 10 seconds on a laptop.</p>
-<ol class="steps">
-<li>Ingest 8 CSV extractions with strict schemas, for 3 desks and about 52 positions.</li>
-<li>Run controls C01&ndash;C11, then compute hypothetical P&amp;L, explain by factor, VaR 99% / ES 97.5% (full revaluation) and limit usage.</li>
-<li>Backtest the VaR with Kupiec's test and the Basel traffic light.</li>
-<li>Write an 8-sheet workbook, then re-read it (C14) to check it matches the computed numbers.</li>
-<li>Archive inputs, outputs and a SHA-256 manifest; <code>rerun</code> replays any day and compares every number.</li>
-</ol>
-
-<h2>Read more</h2>
-<div class="docs">
-<a href="https://github.com/louisdelacour21/risk-report-chain#benchmark-with-known-truth">Benchmark with known truth</a>
-<a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/methodologie.md">Methodology</a>
-<a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/bcbs239.md">BCBS 239 mapping</a>
-<a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/real-data.md">What would change with real data</a>
+<div class="steps">
+<div class="step on" data-p="0"><b>Check the data.</b><p>Eight CSV extractions, three desks, about 52 positions. Fourteen controls say whether the numbers can be used.</p></div>
+<div class="step" data-p="1"><b>Compute the risk.</b><p>Historical VaR 99% and ES 97.5% with full revaluation, P&amp;L explain, limits, and a VaR backtest that never changes the status.</p></div>
+<div class="step" data-p="2"><b>Keep every run.</b><p>Inputs, outputs, a SHA-256 manifest and a journal are archived. Replay any day and every number is compared.</p></div>
 </div>
+<div class="stagewrap"><div class="stage" data-ui>
+<div class="pane on" data-p="0"><div class="big">14 controls<br>8 files</div><div class="kv"><span>Blocking (B)</span><span>C01-C05, C09, C10</span><span>Reservation (A)</span><span>C06-C08, C11-C13</span><span>Report re-read</span><span>C14</span></div></div>
+<div class="pane" data-p="1"><div class="big">VaR 99%<br>541,657 EUR</div><div class="kv"><span>ES 97.5%</span><span>541,049 EUR</span><span>Scenarios</span><span>500, full revaluation</span><span>Backtest</span><span>4 exceptions in 249 days</span><span>Basel zone</span><span><b class="tag">GREEN</b></span></div></div>
+<div class="pane" data-p="2"><div class="big">Replay it</div><pre>python -m riskreport.cli rerun runs/2026-10-30</pre><div class="kv"><span>Archive</span><span>inputs, outputs</span><span>Manifest</span><span>SHA-256</span><span>Journal</span><span>JSON Lines</span><span>Tolerance</span><span>1e-9</span></div></div>
+</div></div>
+</section>
 
-<p class="note">All data is synthetic. The chain checking itself is not an independent validation.</p>
-</main></body></html>
+<section class="proof">
+<p class="rise">Measured on simulated days:</p>
+<div class="rise"><strong>400 of 400</strong><span>runs catch each of the 7 injected defect types</span></div>
+<div class="rise"><strong>10 of 400</strong><span>clean days raise a false alert</span></div>
+<div class="rise"><strong>1e-9</strong><span>tolerance when a run is replayed</span></div>
+</section>
+
+<section class="cta">
+<h2 class="rise">Run it on your laptop</h2>
+<div class="r rise"><pre>pip install -e ".[dev]"
+python -m riskreport.cli showcase</pre><p>About ten seconds. All data is synthetic, and the chain checking itself is not an independent validation.</p><a class="btn" href="https://github.com/louisdelacour21/risk-report-chain">Get the source</a></div>
+</section>
+</main>
+<footer><div><span>A daily risk-report chain</span></div>
+<nav><a href="https://github.com/louisdelacour21/risk-report-chain#benchmark-with-known-truth">Benchmark</a><a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/methodologie.md">Methodology</a><a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/bcbs239.md">BCBS 239</a><a href="https://github.com/louisdelacour21/risk-report-chain/blob/master/docs/real-data.md">Real data</a></nav>
+<div><span>2026 &middot; MIT licence</span></div></footer>
+<script>
+document.documentElement.classList.add('js');
+var C=[["C01","Extraction present, date = as-of"],["C02","Schema: columns, types, bounds"],["C03","Duplicate (book, instrument)"],["C04","Position without static data"],["C05","Missing price"],["C06","Stale price (3 days or more)"],["C07","Jump above 6 EWMA volatilities"],["C08","FO / BO reconciliation"],["C09","Missing FX rate"],["C10","History: 500 scenarios, no gaps"],["C11","Option inputs plausible"],["C12","P&L explain: FO gap in tolerance"],["C13","P&L explain: model residual"],["C14","Workbook re-read matches"]];
+var FAIL={C03:1,C06:1,C12:1},frag=document.getElementById('frag'),rows=document.getElementById('rows'),banner=document.getElementById('banner'),btns=document.querySelectorAll('.days button'),day='ok',timer;
+rows.innerHTML=C.map(function(c){return '<div class="row" data-c="'+c[0]+'"><i>'+c[0]+'</i><span>'+c[1]+'</span><span class="st">PASS</span></div>'}).join('');
+function setDay(d){day=d;frag.dataset.day=d;banner.textContent=d=='ok'?'VALIDATED - as of 2026-10-30':'NOT VALIDATED - do not circulate - as of 2026-10-30';
+btns.forEach(function(b){b.setAttribute('aria-pressed',b.dataset.d==d)});
+rows.querySelectorAll('.row').forEach(function(r){var f=d=='bad'&&FAIL[r.dataset.c];r.classList.toggle('fail',!!f);r.lastChild.textContent=f?'FAIL':'PASS'})}
+btns.forEach(function(b){b.addEventListener('click',function(){clearInterval(timer);setDay(b.dataset.d)})});
+var calm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+if(!calm)timer=setInterval(function(){if(!document.hidden)setDay(day=='ok'?'bad':'ok')},5500);
+/* entrances and pinned states */
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+document.querySelectorAll('.rise').forEach(function(el,i){el.style.transitionDelay=(i%3)*80+'ms';io.observe(el)});
+var steps=document.querySelectorAll('.step'),panes=document.querySelectorAll('.pane');
+function on(i){steps.forEach(function(s,k){s.classList.toggle('on',k==i)});panes.forEach(function(p,k){p.classList.toggle('on',k==i)})}
+var so=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)on(+e.target.dataset.p)})},{rootMargin:'-45% 0px -45% 0px'});
+steps.forEach(function(s){so.observe(s)});
+</script>
+</body></html>
