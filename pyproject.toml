@@ -1,0 +1,28 @@
+[project]
+name = "risk-report-chain"
+version = "0.1.0"
+description = "Daily market-risk reporting chain: controlled Excel report (VaR/ES, P&L explain, data-quality controls), traceable and replayable"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = ["pandas>=2.2", "numpy>=2.0", "XlsxWriter>=3.2", "openpyxl>=3.1.5", "pandera>=0.20", "riskhub-engine==0.1.0", "python-dateutil"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "ruff", "scipy"]
+
+[project.scripts]
+riskreport = "riskreport.cli:main"
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 130
+src = ["src", "tests", "synth"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]

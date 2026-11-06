@@ -1,0 +1,23 @@
+# Everything that changes a number lives here and is hashed into the run journal.
+[run]
+n_scenarios = 500
+var_conf = 0.99
+es_conf = 0.975
+horizon_days = 1
+
+[limits_status]
+warn_at = 0.85
+
+[controls]
+stale_days = 3          # C06
+jump_sigmas = 6.0       # C07, EWMA vol
+ewma_lambda = 0.94
+nominal_tol_eur = 1000  # C08
+vol_min = 0.01          # C11
+vol_max = 3.0
+explain_rel = 0.05      # C12
+explain_abs_eur = 10000
+
+[synth]
+seed = 42
+n_days = 750
