@@ -126,7 +126,7 @@ footer{grid-template-columns:1fr;gap:8px;padding-top:120px}footer div:last-child
 <div class="step" data-p="2"><b>Keep every run.</b><p>Inputs, outputs, a SHA-256 manifest and a journal are archived. Replay any day and every number is compared.</p></div>
 </div>
 <div class="stagewrap"><div class="stage" data-ui>
-<div class="pane on" data-p="0"><div class="big">14 controls<br>8 files</div><div class="kv"><span>Blocking (B)</span><span>C01-C05, C09, C10</span><span>Reservation (A)</span><span>C06-C08, C11-C13</span><span>Report re-read</span><span>C14</span></div></div>
+<div class="pane on" data-p="0"><div class="big">14 controls<br>8 files</div><div class="kv"><span>Blocking</span><span>C01-C04, C09, C10, C14</span><span>Alert only</span><span>C06-C08, C11-C13</span><span>C05, missing price</span><span>alert for 1 day, else blocking</span></div></div>
 <div class="pane" data-p="1"><div class="big">VaR 99%<br>541,657 EUR</div><div class="kv"><span>ES 97.5%</span><span>541,049 EUR</span><span>Scenarios</span><span>500, full revaluation</span><span>Backtest</span><span>4 exceptions in 249 days</span><span>Basel zone</span><span><b class="tag">GREEN</b></span></div></div>
 <div class="pane" data-p="2"><div class="big">Replay it</div><pre>python -m riskreport.cli rerun runs/2026-10-30</pre><div class="kv"><span>Archive</span><span>inputs, outputs</span><span>Manifest</span><span>SHA-256</span><span>Journal</span><span>JSON Lines</span><span>Tolerance</span><span>1e-9</span></div></div>
 </div></div>
@@ -142,7 +142,7 @@ footer{grid-template-columns:1fr;gap:8px;padding-top:120px}footer div:last-child
 <section class="cta">
 <h2 class="rise">Run it on your laptop</h2>
 <div class="r rise"><pre>pip install -e ".[dev]"
-python -m riskreport.cli showcase</pre><p>About ten seconds. All data is synthetic, and the chain checking itself is not an independent validation.</p><a class="btn" href="https://github.com/louisdelacour21/risk-report-chain">Get the source</a></div>
+python -m riskreport.cli showcase</pre><p>About twenty seconds. All data is synthetic, and the chain checking itself is not an independent validation.</p><a class="btn" href="https://github.com/louisdelacour21/risk-report-chain">Get the source</a></div>
 </section>
 </main>
 <footer><div><span>A daily risk-report chain</span></div>
